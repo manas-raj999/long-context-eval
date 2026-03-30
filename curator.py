@@ -1,17 +1,14 @@
 """
 Long-Context & Complex Reasoning Coding Evaluation Dataset
-Curation Pipeline — GSoC 2026 / Gemini CLI
+Curation Pipeline v0.2 — GSoC 2026 / Gemini CLI
 
-Author: Manas Raj (manas-raj999)
-GitHub: https://github.com/manas-raj999
-PRs: #21491, #21505
-
-This pipeline:
-1. Queries GitHub API to discover large, active, multi-language repos
-2. Scores repos on complexity signals (not just stars/size)
-3. Mines git history for PRs requiring true cross-component reasoning
-4. Extracts and validates candidate tasks with difficulty tiering
-5. Outputs a structured dataset schema ready for TestRig integration
+Upgrades over v0.1:
+- Body-level PR filtering (catches doc PRs that slip through title filter)
+- Global rename detection (filters mechanical text replacements)
+- Token budget estimation (files_must_read_tokens, total_context_tokens, pressure_pct)
+- Gold patch metadata on every task
+- Contamination risk field based on PR date vs LLM training cutoffs
+- Expanded seed set (15 repos)
 """
 
 import os
@@ -23,7 +20,6 @@ from dataclasses import dataclass, asdict, field
 from typing import Optional
 from datetime import datetime, timezone
 
-
 GITHUB_API = "https://api.github.com"
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
 HEADERS = {
@@ -32,17 +28,22 @@ HEADERS = {
     **({"Authorization": f"Bearer {TOKEN}"} if TOKEN else {}),
 }
 
-# Target language pairs that create cross-boundary reasoning pressure
+# Gemini 1M context window — for pressure calculation
+GEMINI_CONTEXT_WINDOW = 1_000_000
+
+# Known LLM training cutoffs (approximate) — for contamination risk
+LLM_TRAINING_CUTOFFS = {
+    "gpt4":    datetime(2023, 4,  1, tzinfo=timezone.utc),
+    "gemini":  datetime(2024, 4,  1, tzinfo=timezone.utc),
+    "claude3": datetime(2024, 8,  1, tzinfo=timezone.utc),
+}
+
 TARGET_LANGUAGE_COMBOS = [
-    {"Python", "C"},
-    {"Python", "C++"},
-    {"TypeScript", "Go"},
-    {"TypeScript", "Rust"},
-    {"Java", "Kotlin"},
-    {"Python", "Rust"},
+    {"Python", "C"}, {"Python", "C++"}, {"TypeScript", "Go"},
+    {"TypeScript", "Rust"}, {"Java", "Kotlin"}, {"Python", "Rust"},
+    {"Go", "C"}, {"Ruby", "C"},
 ]
 
-# Repos known to have deep architectural complexity (seed set)
 SEED_REPOS = [
     "django/django",
     "microsoft/vscode",
@@ -54,6 +55,24 @@ SEED_REPOS = [
     "apache/kafka",
     "golang/go",
     "redis/redis",
+    "rails/rails",
+    "fastapi/fastapi",
+    "apache/airflow",
+    "facebook/react",
+    "torvalds/linux",
+]
+
+# Body-level skip keywords (catches doc PRs that slip through title filter)
+BODY_SKIP_KEYWORDS = [
+    "only documentation", "only docs", "doc fix", "typo fix",
+    "spelling", "grammar fix", "update changelog", "release notes",
+    "no code changes", "whitespace only",
+]
+
+# Title skip keywords
+TITLE_SKIP_KEYWORDS = [
+    "bump", "typo", "readme", "changelog", "version bump",
+    "ci:", "docs:", "chore:", "style:", "release:", "revert:",
 ]
 
 
@@ -62,11 +81,11 @@ class RepoScore:
     repo: str
     stars: int
     size_kb: int
-    languages: list[str]
+    languages: list
     open_issues: int
-    commit_frequency: float   # commits per week (approx)
-    language_diversity: int   # number of distinct languages
-    complexity_score: float   # composite 0-100
+    commit_frequency: float
+    language_diversity: int
+    complexity_score: float
     rationale: str
 
 
@@ -77,20 +96,28 @@ class CandidateTask:
     pr_number: int
     pr_title: str
     problem_statement: str
-    relevant_files: list[str]
+    relevant_files: list
     files_changed: int
-    components_crossed: int       # estimated architectural boundary crossings
-    min_context_tokens: int       # rough lower bound
-    difficulty_tier: str          # "medium" | "hard" | "expert"
-    failure_mode_category: str    # "retrieval" | "reasoning" | "cross_component"
+    components_crossed: int
+    # Token budget fields
+    files_must_read_tokens: int
+    total_context_tokens: int
+    pressure_pct: float          # % of Gemini 1M window
+    difficulty_tier: str
+    failure_mode_category: str
+    # Gold patch
     gold_patch_url: str
-    language_pair: list[str]
-    validation_status: str        # "pending" | "validated" | "rejected"
+    gold_patch_summary: str      # brief description of what the patch does
+    # Contamination
+    pr_merged_at: str
+    contamination_risk: str      # "low" | "medium" | "high"
+    contaminated_models: list    # which models likely saw this PR in training
+    language_pair: list
+    validation_status: str
     notes: str = ""
 
 
-def github_get(url: str, params: dict = None) -> dict | list | None:
-    """Rate-limit-aware GET wrapper."""
+def github_get(url, params=None):
     try:
         resp = requests.get(url, headers=HEADERS, params=params, timeout=15)
         if resp.status_code == 403:
@@ -109,29 +136,95 @@ def github_get(url: str, params: dict = None) -> dict | list | None:
         return None
 
 
-def score_repo(repo_full_name: str) -> Optional[RepoScore]:
+def estimate_tokens(files_data):
     """
-    Score a repository on complexity signals relevant to long-context reasoning.
+    Estimate token counts for a set of changed files.
 
-    Key insight: We're NOT optimizing for stars or size alone.
-    We optimize for architectural depth — repos where understanding
-    a bug requires tracing dependencies across subsystem boundaries.
+    Rough heuristics:
+    - Each line of code ≈ 10 tokens
+    - additions + deletions as proxy for lines that must be read
+    - total_context = must_read + estimated surrounding context (3x multiplier)
     """
+    must_read_lines = sum(f.get("additions", 0) +
+                          f.get("deletions", 0) for f in files_data)
+    files_must_read_tokens = must_read_lines * 10
+
+    # Surrounding context: each changed file contributes ~500 tokens of context
+    context_tokens = len(files_data) * 500
+    total_context_tokens = files_must_read_tokens + context_tokens
+
+    pressure_pct = round(
+        (total_context_tokens / GEMINI_CONTEXT_WINDOW) * 100, 2)
+
+    return files_must_read_tokens, total_context_tokens, pressure_pct
+
+
+def assess_contamination_risk(merged_at_str):
+    """
+    Assess contamination risk based on PR merge date vs LLM training cutoffs.
+    Returns risk level and list of models that likely saw this PR.
+    """
+    if not merged_at_str:
+        return "unknown", []
+
+    try:
+        merged_at = datetime.fromisoformat(
+            merged_at_str.replace("Z", "+00:00"))
+    except Exception:
+        return "unknown", []
+
+    contaminated = []
+    for model, cutoff in LLM_TRAINING_CUTOFFS.items():
+        if merged_at < cutoff:
+            contaminated.append(model)
+
+    if len(contaminated) >= 3:
+        risk = "high"
+    elif len(contaminated) >= 1:
+        risk = "medium"
+    else:
+        risk = "low"
+
+    return risk, contaminated
+
+
+def is_global_rename(files_data, pr_title):
+    """
+    Detect if a PR is a mechanical global rename/refactor.
+
+    Signals:
+    - PR title contains rename/refactor keywords
+    - Very high file count but low additions per file (uniform small changes)
+    - Many files touched but changes are tiny and uniform
+    """
+    rename_keywords = ["rename", "refactor", "replace all", "global replace",
+                       "lifetime illegal", "deprecated", "migration", "moved to"]
+
+    title_lower = pr_title.lower()
+    if any(kw in title_lower for kw in rename_keywords):
+        if len(files_data) > 20:
+            # Check if changes are suspiciously uniform (avg < 5 lines per file)
+            total_changes = sum(f.get("additions", 0) +
+                                f.get("deletions", 0) for f in files_data)
+            avg_changes = total_changes / max(len(files_data), 1)
+            if avg_changes < 8:
+                return True
+    return False
+
+
+def score_repo(repo_full_name):
     data = github_get(f"{GITHUB_API}/repos/{repo_full_name}")
     if not data:
         return None
 
-    # Get language breakdown
     langs_data = github_get(
         f"{GITHUB_API}/repos/{repo_full_name}/languages") or {}
     languages = list(langs_data.keys())
 
-    # Estimate commit frequency from recent commits
     commits = github_get(
         f"{GITHUB_API}/repos/{repo_full_name}/commits",
         params={"per_page": 30, "since": "2024-01-01T00:00:00Z"}
     ) or []
-    # Rough: 30 commits over ~60 weeks = 0.5/week
     commit_frequency = len(commits) / 60.0
 
     stars = data.get("stargazers_count", 0)
@@ -139,22 +232,15 @@ def score_repo(repo_full_name: str) -> Optional[RepoScore]:
     open_issues = data.get("open_issues_count", 0)
     lang_diversity = len(languages)
 
-    # Complexity scoring — weighted composite
     score = 0.0
-
-    # Language diversity (cross-boundary reasoning pressure)
-    # Max contribution: 30 points
     score += min(lang_diversity * 6, 30)
 
-    # Is it a multi-language combo that creates API-boundary crossings?
     lang_set = set(languages[:5])
     for combo in TARGET_LANGUAGE_COMBOS:
         if combo.issubset(lang_set):
             score += 20
             break
 
-    # Repo size (large = more context needed)
-    # Max contribution: 20 points
     if size_kb > 500_000:
         score += 20
     elif size_kb > 100_000:
@@ -162,12 +248,8 @@ def score_repo(repo_full_name: str) -> Optional[RepoScore]:
     elif size_kb > 50_000:
         score += 8
 
-    # Active development (more real engineering problems)
-    # Max contribution: 15 points
     score += min(commit_frequency * 10, 15)
 
-    # Community scale (more meaningful issues/PRs)
-    # Max contribution: 15 points
     if stars > 50_000:
         score += 15
     elif stars > 10_000:
@@ -182,34 +264,16 @@ def score_repo(repo_full_name: str) -> Optional[RepoScore]:
     )
 
     return RepoScore(
-        repo=repo_full_name,
-        stars=stars,
-        size_kb=size_kb,
-        languages=languages,
-        open_issues=open_issues,
-        commit_frequency=commit_frequency,
-        language_diversity=lang_diversity,
-        complexity_score=round(score, 1),
-        rationale=rationale,
+        repo=repo_full_name, stars=stars, size_kb=size_kb,
+        languages=languages, open_issues=open_issues,
+        commit_frequency=commit_frequency, language_diversity=lang_diversity,
+        complexity_score=round(score, 1), rationale=rationale,
     )
 
 
-def mine_cross_component_prs(repo_full_name: str, min_files: int = 5, max_prs: int = 50) -> list[CandidateTask]:
-    """
-    Mine merged PRs for cross-component reasoning tasks.
-
-    Core filter logic:
-    - PRs that touch >= min_files files
-    - Files span multiple top-level directories (proxy for architectural boundaries)
-    - NOT just test-only changes
-    - Body/title suggests architectural dependency, not isolated fix
-
-    This is the key insight: true long-context tasks require the agent to
-    understand WHY changing X breaks Y, not just WHERE the change goes.
-    """
+def mine_cross_component_prs(repo_full_name, min_files=5, max_prs=50):
     tasks = []
 
-    # Fetch recent merged PRs
     prs = github_get(
         f"{GITHUB_API}/repos/{repo_full_name}/pulls",
         params={"state": "closed", "sort": "updated", "per_page": max_prs}
@@ -222,14 +286,16 @@ def mine_cross_component_prs(repo_full_name: str, min_files: int = 5, max_prs: i
         pr_number = pr["number"]
         pr_title = pr.get("title", "")
         pr_body = pr.get("body", "") or ""
+        merged_at = pr.get("merged_at", "")
 
-        # Skip trivial changes (docs, typos, version bumps)
-        skip_keywords = ["bump", "typo", "readme",
-                         "changelog", "version bump", "ci:", "docs:"]
-        if any(kw in pr_title.lower() for kw in skip_keywords):
+        # Title-level filter
+        if any(kw in pr_title.lower() for kw in TITLE_SKIP_KEYWORDS):
             continue
 
-        # Get files changed in this PR
+        # Body-level filter (catches doc PRs that slip through title)
+        if any(kw in pr_body.lower() for kw in BODY_SKIP_KEYWORDS):
+            continue
+
         files_data = github_get(
             f"{GITHUB_API}/repos/{repo_full_name}/pulls/{pr_number}/files",
             params={"per_page": 100}
@@ -240,14 +306,18 @@ def mine_cross_component_prs(repo_full_name: str, min_files: int = 5, max_prs: i
 
         file_paths = [f["filename"] for f in files_data]
 
-        # Skip if majority are test files
+        # Skip majority test files
         test_files = sum(
             1 for f in file_paths if "test" in f.lower() or "spec" in f.lower())
         if test_files > len(file_paths) * 0.6:
             continue
 
-        # Count architectural boundary crossings:
-        # proxy = number of distinct top-level directories touched
+        # Global rename detection (v0.2 addition)
+        if is_global_rename(files_data, pr_title):
+            print(f"    [skip] global rename detected: {pr_title[:60]}")
+            continue
+
+        # Architectural boundary crossings
         top_dirs = set()
         for fp in file_paths:
             parts = fp.split("/")
@@ -258,29 +328,37 @@ def mine_cross_component_prs(repo_full_name: str, min_files: int = 5, max_prs: i
         if components_crossed < 2:
             continue
 
-        # Estimate context tokens (rough: avg 200 tokens per changed file)
-        additions = sum(f.get("additions", 0) for f in files_data)
-        deletions = sum(f.get("deletions", 0) for f in files_data)
-        min_context_tokens = max(
-            (additions + deletions) * 3, len(file_paths) * 200)
+        # Token budget estimation (v0.2 addition)
+        files_must_read_tokens, total_context_tokens, pressure_pct = estimate_tokens(
+            files_data)
 
-        # Difficulty tiering based on boundary crossings + context size
-        if components_crossed >= 5 or min_context_tokens > 50_000:
+        # Contamination risk (v0.2 addition)
+        contamination_risk, contaminated_models = assess_contamination_risk(
+            merged_at)
+
+        # Difficulty tiering
+        if components_crossed >= 5 or pressure_pct > 5.0:
             difficulty = "expert"
             failure_mode = "cross_component"
-        elif components_crossed >= 3 or min_context_tokens > 20_000:
+        elif components_crossed >= 3 or pressure_pct > 2.0:
             difficulty = "hard"
             failure_mode = "reasoning"
         else:
             difficulty = "medium"
             failure_mode = "retrieval"
 
-        # Build problem statement from PR title + body excerpt
         body_excerpt = (
-            pr_body[:300] + "...") if len(pr_body) > 300 else pr_body
+            pr_body[:400] + "...") if len(pr_body) > 400 else pr_body
         problem_statement = f"{pr_title}\n\n{body_excerpt}".strip()
-
         base_commit = pr.get("base", {}).get("sha", "")[:12]
+
+        # Gold patch (v0.2 addition)
+        gold_patch_url = f"https://github.com/{repo_full_name}/pull/{pr_number}/files"
+        gold_patch_summary = (
+            f"PR #{pr_number} modifies {len(file_paths)} files across "
+            f"{components_crossed} top-level components. "
+            f"Key files: {', '.join(file_paths[:3])}{'...' if len(file_paths) > 3 else ''}."
+        )
 
         tasks.append(CandidateTask(
             repo=repo_full_name,
@@ -288,35 +366,33 @@ def mine_cross_component_prs(repo_full_name: str, min_files: int = 5, max_prs: i
             pr_number=pr_number,
             pr_title=pr_title,
             problem_statement=problem_statement,
-            relevant_files=file_paths[:20],  # cap at 20 for schema size
+            relevant_files=file_paths[:20],
             files_changed=len(file_paths),
             components_crossed=components_crossed,
-            min_context_tokens=min_context_tokens,
+            files_must_read_tokens=files_must_read_tokens,
+            total_context_tokens=total_context_tokens,
+            pressure_pct=pressure_pct,
             difficulty_tier=difficulty,
             failure_mode_category=failure_mode,
-            gold_patch_url=f"https://github.com/{repo_full_name}/pull/{pr_number}/files",
+            gold_patch_url=gold_patch_url,
+            gold_patch_summary=gold_patch_summary,
+            pr_merged_at=merged_at,
+            contamination_risk=contamination_risk,
+            contaminated_models=contaminated_models,
             language_pair=[],
             validation_status="pending",
         ))
 
-        # Respect rate limits — small sleep between PR file fetches
         time.sleep(0.3)
 
     return tasks
 
 
-def run_pipeline(repos: list[str], output_dir: str = "dataset", min_score: float = 40.0):
-    """
-    Full curation pipeline:
-    1. Score repos
-    2. Filter by complexity threshold  
-    3. Mine cross-component PRs
-    4. Output structured dataset schema
-    """
+def run_pipeline(repos, output_dir="dataset", min_score=40.0):
     os.makedirs(output_dir, exist_ok=True)
 
     print(f"\n{'='*60}")
-    print(f"  Long-Context Eval Dataset — Curation Pipeline")
+    print(f"  Long-Context Eval Dataset — Curation Pipeline v0.2")
     print(f"  Repos to evaluate: {len(repos)}")
     print(f"  Complexity threshold: {min_score}")
     print(f"{'='*60}\n")
@@ -324,7 +400,6 @@ def run_pipeline(repos: list[str], output_dir: str = "dataset", min_score: float
     scored_repos = []
     all_tasks = []
 
-    # Phase 1: Score repos
     print("[Phase 1] Scoring repositories...")
     for repo in repos:
         print(f"  Scoring {repo}...")
@@ -335,52 +410,65 @@ def run_pipeline(repos: list[str], output_dir: str = "dataset", min_score: float
                 f"    Score: {score.complexity_score:.1f} — {score.rationale}")
         time.sleep(0.5)
 
-    # Filter by complexity threshold
     qualified = [r for r in scored_repos if r.complexity_score >= min_score]
     print(
         f"\n  Qualified repos: {len(qualified)}/{len(scored_repos)} (score >= {min_score})")
 
-    # Save repo scores
     with open(f"{output_dir}/repo_scores.json", "w") as f:
         json.dump([asdict(r) for r in scored_repos], f, indent=2)
-    print(f"  Saved repo scores → {output_dir}/repo_scores.json")
 
-    # Phase 2: Mine tasks from qualified repos
     print(f"\n[Phase 2] Mining cross-component PRs...")
     for repo_score in qualified:
         print(f"\n  Mining {repo_score.repo}...")
         tasks = mine_cross_component_prs(
             repo_score.repo, min_files=5, max_prs=30)
         print(f"    Found {len(tasks)} candidate tasks")
-
-        # Tag with language pair from repo
         for task in tasks:
             task.language_pair = repo_score.languages[:3]
-
         all_tasks.extend(tasks)
         time.sleep(1.0)
 
-    # Phase 3: Output dataset schema
     print(f"\n[Phase 3] Building dataset schema...")
 
-    # Summary stats
     by_difficulty = {}
     by_failure_mode = {}
+    by_contamination = {}
+    pressure_buckets = {"<1%": 0, "1-5%": 0, "5-20%": 0, ">20%": 0}
+
     for t in all_tasks:
         by_difficulty[t.difficulty_tier] = by_difficulty.get(
             t.difficulty_tier, 0) + 1
         by_failure_mode[t.failure_mode_category] = by_failure_mode.get(
             t.failure_mode_category, 0) + 1
+        by_contamination[t.contamination_risk] = by_contamination.get(
+            t.contamination_risk, 0) + 1
+        if t.pressure_pct < 1:
+            pressure_buckets["<1%"] += 1
+        elif t.pressure_pct < 5:
+            pressure_buckets["1-5%"] += 1
+        elif t.pressure_pct < 20:
+            pressure_buckets["5-20%"] += 1
+        else:
+            pressure_buckets[">20%"] += 1
 
     dataset = {
         "metadata": {
-            "version": "0.1.0-prototype",
+            "version": "0.2.0",
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_tasks": len(all_tasks),
             "qualified_repos": len(qualified),
             "difficulty_distribution": by_difficulty,
             "failure_mode_distribution": by_failure_mode,
-            "schema_version": "long-context-eval-v1",
+            "contamination_distribution": by_contamination,
+            "context_pressure_distribution": pressure_buckets,
+            "schema_version": "long-context-eval-v2",
+            "new_in_v2": [
+                "body-level PR filtering",
+                "global rename detection",
+                "token_budget_estimate (files_must_read_tokens, total_context_tokens, pressure_pct)",
+                "gold_patch_summary on every task",
+                "contamination_risk field with model-level granularity",
+            ]
         },
         "tasks": [asdict(t) for t in all_tasks],
     }
@@ -390,11 +478,13 @@ def run_pipeline(repos: list[str], output_dir: str = "dataset", min_score: float
         json.dump(dataset, f, indent=2)
 
     print(f"\n{'='*60}")
-    print(f"  Pipeline complete")
-    print(f"  Total candidate tasks: {len(all_tasks)}")
-    print(f"  Difficulty breakdown: {by_difficulty}")
-    print(f"  Failure mode breakdown: {by_failure_mode}")
-    print(f"  Output: {output_path}")
+    print(f"  Pipeline v0.2 complete")
+    print(f"  Total candidate tasks : {len(all_tasks)}")
+    print(f"  Difficulty            : {by_difficulty}")
+    print(f"  Failure mode          : {by_failure_mode}")
+    print(f"  Contamination risk    : {by_contamination}")
+    print(f"  Context pressure      : {pressure_buckets}")
+    print(f"  Output                : {output_path}")
     print(f"{'='*60}\n")
 
     return dataset
@@ -402,11 +492,10 @@ def run_pipeline(repos: list[str], output_dir: str = "dataset", min_score: float
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Long-Context Eval Curation Pipeline")
-    parser.add_argument("--repos", nargs="+", default=SEED_REPOS[:5],
+        description="Long-Context Eval Curation Pipeline v0.2")
+    parser.add_argument("--repos", nargs="+", default=SEED_REPOS[:8],
                         help="List of repos (owner/name) to process")
-    parser.add_argument("--output", default="dataset",
-                        help="Output directory")
+    parser.add_argument("--output", default="dataset", help="Output directory")
     parser.add_argument("--min-score", type=float, default=40.0,
                         help="Minimum complexity score (0-100)")
     args = parser.parse_args()

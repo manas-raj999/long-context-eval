@@ -12,7 +12,12 @@
       "retrieval": 7,
       "reasoning": 5
     },
-    "schema_version": "long-context-eval-v1"
+    "schema_version": "long-context-eval-v1",
+    "reasoning_chain_enrichment": {
+      "tasks_enriched": 2,
+      "genuine_cross_component": 1,
+      "enriched_for_repo": "django/django"
+    }
   },
   "tasks": [
     {
@@ -55,7 +60,19 @@
         "JavaScript"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "django/contrib/gis/db/backends/postgis/creation.py \u2192 django/contrib/gis/db/backends/spatialite/creation.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "django/contrib/gis/db/backends/postgis/creation.py",
+          "django/contrib/gis/db/backends/spatialite/creation.py"
+        ],
+        "depth": 1,
+        "boundary_crossings": [],
+        "is_genuine_cross_component": false,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "django/django",
@@ -85,7 +102,23 @@
         "JavaScript"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "django/* \u2192 docs/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "django/*",
+          "docs/*",
+          "tests/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "django \u2192 docs",
+          "docs \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "microsoft/vscode",

@@ -1,8 +1,8 @@
 [
   {
     "repo": "django/django",
-    "stars": 87126,
-    "size_kb": 278208,
+    "stars": 87122,
+    "size_kb": 278230,
     "languages": [
       "Python",
       "Jinja",
@@ -12,16 +12,16 @@
       "Smarty",
       "Procfile"
     ],
-    "open_issues": 424,
+    "open_issues": 421,
     "commit_frequency": 0.5,
     "language_diversity": 7,
     "complexity_score": 64.0,
-    "rationale": "7 languages (Python, Jinja, JavaScript, CSS), 87,126 stars, 278,208 KB, ~0.5 commits/week"
+    "rationale": "7 languages (Python, Jinja, JavaScript, CSS), 87,122 stars, 278,230 KB, ~0.5 commits/week"
   },
   {
     "repo": "microsoft/vscode",
-    "stars": 183164,
-    "size_kb": 1161995,
+    "stars": 183196,
+    "size_kb": 1163107,
     "languages": [
       "TypeScript",
       "CSS",
@@ -70,16 +70,16 @@
       "HLSL",
       "Hack"
     ],
-    "open_issues": 15658,
+    "open_issues": 15709,
     "commit_frequency": 0.5,
     "language_diversity": 46,
     "complexity_score": 90.0,
-    "rationale": "46 languages (TypeScript, CSS, JavaScript, Rust), 183,164 stars, 1,161,995 KB, ~0.5 commits/week"
+    "rationale": "46 languages (TypeScript, CSS, JavaScript, Rust), 183,196 stars, 1,163,107 KB, ~0.5 commits/week"
   },
   {
     "repo": "kubernetes/kubernetes",
-    "stars": 121382,
-    "size_kb": 1461119,
+    "stars": 121403,
+    "size_kb": 1461148,
     "languages": [
       "Go",
       "Shell",
@@ -92,16 +92,16 @@
       "sed",
       "HTML"
     ],
-    "open_issues": 2651,
+    "open_issues": 2658,
     "commit_frequency": 0.5,
     "language_diversity": 10,
     "complexity_score": 70.0,
-    "rationale": "10 languages (Go, Shell, PowerShell, Makefile), 121,382 stars, 1,461,119 KB, ~0.5 commits/week"
+    "rationale": "10 languages (Go, Shell, PowerShell, Makefile), 121,403 stars, 1,461,148 KB, ~0.5 commits/week"
   },
   {
     "repo": "rust-lang/rust",
-    "stars": 111568,
-    "size_kb": 864641,
+    "stars": 111588,
+    "size_kb": 866689,
     "languages": [
       "Rust",
       "HTML",
@@ -129,16 +129,16 @@
       "LLVM",
       "Perl"
     ],
-    "open_issues": 12284,
+    "open_issues": 12304,
     "commit_frequency": 0.5,
     "language_diversity": 25,
     "complexity_score": 70.0,
-    "rationale": "25 languages (Rust, HTML, Shell, C), 111,568 stars, 864,641 KB, ~0.5 commits/week"
+    "rationale": "25 languages (Rust, HTML, Shell, C), 111,588 stars, 866,689 KB, ~0.5 commits/week"
   },
   {
     "repo": "python/cpython",
-    "stars": 72112,
-    "size_kb": 806945,
+    "stars": 72122,
+    "size_kb": 802741,
     "languages": [
       "Python",
       "C",
@@ -164,10 +164,128 @@
       "CMake",
       "VBScript"
     ],
-    "open_issues": 9334,
+    "open_issues": 9324,
     "commit_frequency": 0.5,
     "language_diversity": 23,
     "complexity_score": 90.0,
-    "rationale": "23 languages (Python, C, C++, M4), 72,112 stars, 806,945 KB, ~0.5 commits/week"
+    "rationale": "23 languages (Python, C, C++, M4), 72,122 stars, 802,741 KB, ~0.5 commits/week"
+  },
+  {
+    "repo": "pytorch/pytorch",
+    "stars": 98659,
+    "size_kb": 1287889,
+    "languages": [
+      "Python",
+      "C++",
+      "Cuda",
+      "C",
+      "Objective-C++",
+      "CMake",
+      "Shell",
+      "Metal",
+      "Starlark",
+      "Assembly",
+      "HIP",
+      "GLSL",
+      "Jupyter Notebook",
+      "Jinja",
+      "JavaScript",
+      "Java",
+      "Batchfile",
+      "Dockerfile",
+      "Objective-C",
+      "Makefile",
+      "PowerShell",
+      "Thrift",
+      "GDB",
+      "Linker Script",
+      "Go Template",
+      "HTML",
+      "Vim Script"
+    ],
+    "open_issues": 18142,
+    "commit_frequency": 0.5,
+    "language_diversity": 27,
+    "complexity_score": 90.0,
+    "rationale": "27 languages (Python, C++, Cuda, C), 98,659 stars, 1,287,889 KB, ~0.5 commits/week"
+  },
+  {
+    "repo": "langchain-ai/langchain",
+    "stars": 131659,
+    "size_kb": 529736,
+    "languages": [
+      "Python",
+      "Makefile",
+      "Shell",
+      "XSLT",
+      "HTML",
+      "Dockerfile",
+      "JavaScript"
+    ],
+    "open_issues": 500,
+    "commit_frequency": 0.5,
+    "language_diversity": 7,
+    "complexity_score": 70.0,
+    "rationale": "7 languages (Python, Makefile, Shell, XSLT), 131,659 stars, 529,736 KB, ~0.5 commits/week"
+  },
+  {
+    "repo": "golang/go",
+    "stars": 133204,
+    "size_kb": 431316,
+    "languages": [
+      "Go",
+      "Assembly",
+      "HTML",
+      "C",
+      "Shell",
+      "Perl",
+      "Python",
+      "JavaScript",
+      "Batchfile",
+      "Dockerfile",
+      "Makefile",
+      "Awk"
+    ],
+    "open_issues": 9919,
+    "commit_frequency": 0.5,
+    "language_diversity": 12,
+    "complexity_score": 84.0,
+    "rationale": "12 languages (Go, Assembly, HTML, C), 133,204 stars, 431,316 KB, ~0.5 commits/week"
+  },
+  {
+    "repo": "rails/rails",
+    "stars": 58316,
+    "size_kb": 277780,
+    "languages": [
+      "Ruby",
+      "JavaScript",
+      "HTML",
+      "SCSS",
+      "CSS",
+      "Dockerfile",
+      "Shell"
+    ],
+    "open_issues": 1538,
+    "commit_frequency": 0.5,
+    "language_diversity": 7,
+    "complexity_score": 64.0,
+    "rationale": "7 languages (Ruby, JavaScript, HTML, SCSS), 58,316 stars, 277,780 KB, ~0.5 commits/week"
+  },
+  {
+    "repo": "fastapi/fastapi",
+    "stars": 96686,
+    "size_kb": 40304,
+    "languages": [
+      "Python",
+      "JavaScript",
+      "Shell",
+      "HTML",
+      "CSS"
+    ],
+    "open_issues": 170,
+    "commit_frequency": 0.5,
+    "language_diversity": 5,
+    "complexity_score": 50.0,
+    "rationale": "5 languages (Python, JavaScript, Shell, HTML), 96,686 stars, 40,304 KB, ~0.5 commits/week"
   }
 ]
