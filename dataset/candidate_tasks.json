@@ -30,7 +30,12 @@
       "token_budget_estimate (files_must_read_tokens, total_context_tokens, pressure_pct)",
       "gold_patch_summary on every task",
       "contamination_risk field with model-level granularity"
-    ]
+    ],
+    "reasoning_chain_enrichment": {
+      "tasks_enriched": 10,
+      "genuine_cross_component": 10,
+      "enriched_for_repo": "langchain-ai/langchain"
+    }
   },
   "tasks": [
     {
@@ -83,7 +88,19 @@
         "JavaScript"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "django/contrib/gis/db/backends/postgis/creation.py \u2192 django/contrib/gis/db/backends/spatialite/creation.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "django/contrib/gis/db/backends/postgis/creation.py",
+          "django/contrib/gis/db/backends/spatialite/creation.py"
+        ],
+        "depth": 1,
+        "boundary_crossings": [],
+        "is_genuine_cross_component": false,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "django/django",
@@ -123,7 +140,23 @@
         "JavaScript"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "django/* \u2192 docs/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "django/*",
+          "docs/*",
+          "tests/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "django \u2192 docs",
+          "docs \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "microsoft/vscode",
@@ -622,7 +655,21 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/* \u2192 torch/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/*",
+          "torch/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -660,7 +707,21 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/* \u2192 torch/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/*",
+          "torch/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -706,7 +767,23 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/test_autograd.py \u2192 torch/autograd/functions/__init__.py \u2192 torch/autograd/functions/basic_ops.py \u2192 test/test_torch.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/test_autograd.py",
+          "torch/autograd/functions/__init__.py",
+          "torch/autograd/functions/basic_ops.py",
+          "test/test_torch.py"
+        ],
+        "depth": 4,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -758,7 +835,23 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/test_legacy_nn.py \u2192 test/common_nn.py \u2192 test/common.py \u2192 torch/__init__.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/test_legacy_nn.py",
+          "test/common_nn.py",
+          "test/common.py",
+          "torch/__init__.py"
+        ],
+        "depth": 4,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -810,7 +903,21 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "torch/Storage.py \u2192 test/test_torch.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "torch/Storage.py",
+          "test/test_torch.py"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "torch \u2192 test"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -858,7 +965,21 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/test_cuda.py \u2192 torch/__init__.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/test_cuda.py",
+          "torch/__init__.py"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -900,7 +1021,22 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/test_legacy_nn.py \u2192 test/common_nn.py \u2192 torch/__init__.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/test_legacy_nn.py",
+          "test/common_nn.py",
+          "torch/__init__.py"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -942,7 +1078,22 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "torch/nn/modules/__init__.py \u2192 torch/nn/modules/conv.py \u2192 test/test_torch.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "torch/nn/modules/__init__.py",
+          "torch/nn/modules/conv.py",
+          "test/test_torch.py"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "torch \u2192 test"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -985,7 +1136,21 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "setup.py \u2192 tools/cwrap/plugins/THPPlugin.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "setup.py",
+          "tools/cwrap/plugins/THPPlugin.py"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "root \u2192 tools"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "pytorch/pytorch",
@@ -1034,7 +1199,21 @@
         "Cuda"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "test/* \u2192 torch/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "test/*",
+          "torch/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "test \u2192 torch"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1073,7 +1252,21 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "tests/unit_tests/test_formatting.py \u2192 langchain/formatting.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "tests/unit_tests/test_formatting.py",
+          "langchain/formatting.py"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "tests \u2192 langchain"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1119,7 +1312,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "root/* \u2192 langchain/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "root/*",
+          "langchain/*",
+          "tests/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "root \u2192 langchain",
+          "langchain \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1158,7 +1367,21 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "langchain/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "langchain/*",
+          "tests/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "langchain \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1197,7 +1420,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "langchain/* \u2192 root/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "langchain/*",
+          "root/*",
+          "tests/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "langchain \u2192 root",
+          "root \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1236,7 +1475,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "root/* \u2192 langchain/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "root/*",
+          "langchain/*",
+          "tests/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "root \u2192 langchain",
+          "langchain \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1281,7 +1536,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "root/* \u2192 docs/* \u2192 langchain/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "root/*",
+          "docs/*",
+          "langchain/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "root \u2192 docs",
+          "docs \u2192 langchain"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1320,7 +1591,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "examples/* \u2192 langchain/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "examples/*",
+          "langchain/*",
+          "tests/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "examples \u2192 langchain",
+          "langchain \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1367,7 +1654,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "root/* \u2192 docs/* \u2192 langchain/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "root/*",
+          "docs/*",
+          "langchain/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "root \u2192 docs",
+          "docs \u2192 langchain"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1410,7 +1713,21 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "tests/unit_tests/llms/test_cohere.py \u2192 langchain/llms/cohere.py",
+      "reasoning_chain_detail": {
+        "chain": [
+          "tests/unit_tests/llms/test_cohere.py",
+          "langchain/llms/cohere.py"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "tests \u2192 langchain"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "medium",
+        "method": "ast"
+      }
     },
     {
       "repo": "langchain-ai/langchain",
@@ -1457,7 +1774,25 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "examples/* \u2192 langchain/* \u2192 root/* \u2192 tests/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "examples/*",
+          "langchain/*",
+          "root/*",
+          "tests/*"
+        ],
+        "depth": 4,
+        "boundary_crossings": [
+          "examples \u2192 langchain",
+          "langchain \u2192 root",
+          "root \u2192 tests"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "fastapi/fastapi",
