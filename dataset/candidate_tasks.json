@@ -32,9 +32,9 @@
       "contamination_risk field with model-level granularity"
     ],
     "reasoning_chain_enrichment": {
-      "tasks_enriched": 10,
-      "genuine_cross_component": 10,
-      "enriched_for_repo": "langchain-ai/langchain"
+      "tasks_enriched": 4,
+      "genuine_cross_component": 4,
+      "enriched_for_repo": "rust-lang/rust"
     }
   },
   "tasks": [
@@ -288,7 +288,25 @@
         "PowerShell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "root/* \u2192 cluster/* \u2192 cmd/* \u2192 pkg/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "root/*",
+          "cluster/*",
+          "cmd/*",
+          "pkg/*"
+        ],
+        "depth": 4,
+        "boundary_crossings": [
+          "root \u2192 cluster",
+          "cluster \u2192 cmd",
+          "cmd \u2192 pkg"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "kubernetes/kubernetes",
@@ -327,7 +345,21 @@
         "PowerShell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "cmd/* \u2192 pkg/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "cmd/*",
+          "pkg/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "cmd \u2192 pkg"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "kubernetes/kubernetes",
@@ -367,7 +399,25 @@
         "PowerShell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "api/* \u2192 cluster/* \u2192 cmd/* \u2192 pkg/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "api/*",
+          "cluster/*",
+          "cmd/*",
+          "pkg/*"
+        ],
+        "depth": 4,
+        "boundary_crossings": [
+          "api \u2192 cluster",
+          "cluster \u2192 cmd",
+          "cmd \u2192 pkg"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "kubernetes/kubernetes",
@@ -419,7 +469,25 @@
         "PowerShell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "api/* \u2192 cmd/* \u2192 examples/* \u2192 pkg/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "api/*",
+          "cmd/*",
+          "examples/*",
+          "pkg/*"
+        ],
+        "depth": 4,
+        "boundary_crossings": [
+          "api \u2192 cmd",
+          "cmd \u2192 examples",
+          "examples \u2192 pkg"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "rust-lang/rust",
@@ -464,7 +532,23 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "root/* \u2192 mk/* \u2192 src/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "root/*",
+          "mk/*",
+          "src/*"
+        ],
+        "depth": 3,
+        "boundary_crossings": [
+          "root \u2192 mk",
+          "mk \u2192 src"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "rust-lang/rust",
@@ -507,7 +591,21 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "mk/* \u2192 src/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "mk/*",
+          "src/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "mk \u2192 src"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "rust-lang/rust",
@@ -559,7 +657,21 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "mk/* \u2192 src/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "mk/*",
+          "src/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "mk \u2192 src"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "rust-lang/rust",
@@ -611,7 +723,21 @@
         "Shell"
       ],
       "validation_status": "pending",
-      "notes": ""
+      "notes": "",
+      "reasoning_chain": "doc/* \u2192 src/*",
+      "reasoning_chain_detail": {
+        "chain": [
+          "doc/*",
+          "src/*"
+        ],
+        "depth": 2,
+        "boundary_crossings": [
+          "doc \u2192 src"
+        ],
+        "is_genuine_cross_component": true,
+        "confidence": "low",
+        "method": "directory_proxy"
+      }
     },
     {
       "repo": "pytorch/pytorch",
