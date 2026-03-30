@@ -20,7 +20,7 @@
   },
   {
     "repo": "microsoft/vscode",
-    "stars": 183196,
+    "stars": 183199,
     "size_kb": 1163107,
     "languages": [
       "TypeScript",
@@ -70,11 +70,11 @@
       "HLSL",
       "Hack"
     ],
-    "open_issues": 15709,
+    "open_issues": 15708,
     "commit_frequency": 0.5,
     "language_diversity": 46,
     "complexity_score": 90.0,
-    "rationale": "46 languages (TypeScript, CSS, JavaScript, Rust), 183,196 stars, 1,163,107 KB, ~0.5 commits/week"
+    "rationale": "46 languages (TypeScript, CSS, JavaScript, Rust), 183,199 stars, 1,163,107 KB, ~0.5 commits/week"
   },
   {
     "repo": "kubernetes/kubernetes",
@@ -129,7 +129,7 @@
       "LLVM",
       "Perl"
     ],
-    "open_issues": 12304,
+    "open_issues": 12305,
     "commit_frequency": 0.5,
     "language_diversity": 25,
     "complexity_score": 70.0,
@@ -138,7 +138,7 @@
   {
     "repo": "python/cpython",
     "stars": 72122,
-    "size_kb": 802741,
+    "size_kb": 802742,
     "languages": [
       "Python",
       "C",
@@ -168,11 +168,11 @@
     "commit_frequency": 0.5,
     "language_diversity": 23,
     "complexity_score": 90.0,
-    "rationale": "23 languages (Python, C, C++, M4), 72,122 stars, 802,741 KB, ~0.5 commits/week"
+    "rationale": "23 languages (Python, C, C++, M4), 72,122 stars, 802,742 KB, ~0.5 commits/week"
   },
   {
     "repo": "pytorch/pytorch",
-    "stars": 98659,
+    "stars": 98660,
     "size_kb": 1287889,
     "languages": [
       "Python",
@@ -203,11 +203,11 @@
       "HTML",
       "Vim Script"
     ],
-    "open_issues": 18142,
+    "open_issues": 18145,
     "commit_frequency": 0.5,
     "language_diversity": 27,
     "complexity_score": 90.0,
-    "rationale": "27 languages (Python, C++, Cuda, C), 98,659 stars, 1,287,889 KB, ~0.5 commits/week"
+    "rationale": "27 languages (Python, C++, Cuda, C), 98,660 stars, 1,287,889 KB, ~0.5 commits/week"
   },
   {
     "repo": "langchain-ai/langchain",
